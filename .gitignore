@@ -2,3 +2,6 @@
 .swo
 *.swp
 *.swo
+localstack-temp
+main
+lambda-example.zip

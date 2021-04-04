@@ -1,23 +1,22 @@
 # Lambda Example
 
-## Build
+## Run on Local(stack)
 
 ```bash
-docker build -t lambda-example .
-```
-
-## Run on Local
-
-```bash
-docker run -p 9000:8080 lambda-example:latest /main
+make run
 ```
 
 ## Test
 
 ```bash
-curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d '
-{
-	"What is your name?": "Jim",
-	"How old are you?": 33
-}'
+aws --endpoint-url=http://localhost:4566 lambda invoke --function-name lambda-example --payload '{
+    "What is your name?": "Jim",
+    "How old are you?": 33
+}' /dev/stdout
+```
+
+## Stop Local(stack)
+
+```bash
+make stop
 ```
