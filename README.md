@@ -10,9 +10,17 @@ make run
 
 ```bash
 aws --endpoint-url=http://localhost:4566 lambda invoke --function-name lambda-example --payload '{
-    "What is your name?": "Jim",
-    "How old are you?": 33
+        "company": {
+                "name": "relianceindustries",
+                "symbol": "RI"
+        }
 }' /dev/stdout
+```
+
+Check webpage uploaded on s3:
+
+```bash
+aws --endpoint-url=http://localhost:4566 s3 cp s3://webpages/relianceindustries/RI/1 /dev/stdout
 ```
 
 ## Stop Local(stack)
