@@ -18,6 +18,12 @@ const (
 	nPages = 3
 
 	localstackHostnameEnv = "LOCALSTACK_HOSTNAME"
+
+	eventBusName = "webpages-bus"
+
+	scraperSource = "scraper"
+
+	streamName = "webpages-upload-stream"
 )
 
 var (

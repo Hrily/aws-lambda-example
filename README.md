@@ -23,6 +23,16 @@ Check webpage uploaded on s3:
 aws --endpoint-url=http://localhost:4566 s3 cp s3://webpages/relianceindustries/RI/1 /dev/stdout
 ```
 
+Check kinesis records:
+
+```bash
+# Get shard iterator
+aws --endpoint-url=http://localhost:4566 kinesis get-shard-iterator --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --stream-name webpages-upload-stream
+# Get records
+aws --endpoint-url=http://localhost:4566 kinesis get-records --shard-iterator "<shard-iterator-from-above-command-output>"
+```
+
+
 ## Stop Local(stack)
 
 ```bash

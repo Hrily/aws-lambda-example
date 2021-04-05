@@ -7,7 +7,7 @@ services:
     ports:
       - "4566-4599:4566-4599"
     environment:
-      - SERVICES=serverless
+      - SERVICES=serverless,events
       - LAMBDA_EXECUTOR=docker
       - LAMBDA_REMOVE_CONTAINERS=false
       - DOCKER_HOST=unix:///var/run/docker.sock
