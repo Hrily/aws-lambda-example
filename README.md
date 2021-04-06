@@ -9,7 +9,7 @@ make run
 ## Test
 
 ```bash
-aws --endpoint-url=http://localhost:4566 lambda invoke --function-name lambda-example --payload '{
+aws --endpoint-url=http://localhost:4566 lambda invoke --function-name scraper --payload '{
         "company": {
                 "name": "relianceindustries",
                 "symbol": "RI"
