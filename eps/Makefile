@@ -6,7 +6,7 @@ clean:
 	rm ${ZIP} ${BINARY}
 
 build: *.go
-	GOOS=${GOOS} go build -o ${BINARY} .
+	GOOS=${GOOS} CGO_ENABLED=0 go build -o ${BINARY} .
 
 create-zip:
 	zip -j ${ZIP} ${BINARY}

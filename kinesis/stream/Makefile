@@ -8,9 +8,6 @@ create-target: create-stream
 	${AWS} events put-targets \
 		--rule ${RULE_NAME} \
 		--event-bus-name "${BUS_NAME}" \
-		--targets '{      \
-			"Id": "9",      \
-			"Arn": "${ARN}" \
-		}'
+		--targets '{ "Id": "9", "Arn": "${ARN}" }'
 
 all: create-target

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -17,12 +18,14 @@ import (
 func Handle(request Request) (response Response, err error) {
 	for page := 1; page <= nPages; page++ {
 		url := toURL(request.Company, page)
+		fmt.Printf("%s: #%d: Scraping page", time.Now(), page)
 		pageBody, err := scrapePage(url)
 		if err != nil {
 			return response, err
 		}
 		defer pageBody.Close()
 
+		fmt.Printf("%s: #%d: Uploading page to S3", time.Now(), page)
 		addr := toS3Addr(request.Company, page)
 		if err := uploadPage(addr, pageBody); err != nil {
 			return response, err
@@ -34,7 +37,9 @@ func Handle(request Request) (response Response, err error) {
 		// }
 		// EventBridge to Kinesis isn't yet supported by localstack
 		// See: https://github.com/localstack/localstack/issues/3826
+
 		// Put record directly to Kinesis for now
+		fmt.Printf("%s: #%d: Sending event", time.Now(), page)
 		event := toEvent(addr, request.Company)
 		if err := sendEventToKenesis(event); err != nil {
 			return response, err

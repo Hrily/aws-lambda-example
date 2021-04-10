@@ -11,7 +11,10 @@ import (
 	"github.com/antchfx/htmlquery"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
@@ -32,17 +35,31 @@ func handleEventRecord(record events.KinesisEventRecord) error {
 		return err
 	}
 
+	fmt.Printf("%s: Downloading webpage", time.Now())
 	pageBytes, err := downloadWebpage(event.Address)
 	if err != nil {
 		return err
 	}
 
+	fmt.Printf("%s: Parsing EPS Data", time.Now())
 	epsData, err := getEPSData(pageBytes)
 	if err != nil {
 		return err
 	}
 
-	return fmt.Errorf("%+v", epsData)
+	err = putCompany(event.Company)
+	if err != nil {
+		return err
+	}
+
+	for _, eps := range epsData {
+		err = putEPS(event.Company, eps)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func downloadWebpage(addr S3Addr) ([]byte, error) {
@@ -106,4 +123,75 @@ func getEPSData(pageBytes []byte) (epsData []EPSData, err error) {
 	}
 
 	return
+}
+
+func putCompany(company Company) error {
+	sess, err := session.NewSession(&awsConfig)
+	if err != nil {
+		return err
+	}
+
+	db := dynamodb.New(sess)
+
+	companyRecord := CompanyRecord{
+		Symbol: company.Symbol,
+		Name:   company.Name,
+	}
+
+	companyRecordMap, err := dynamodbattribute.MarshalMap(companyRecord)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.PutItem(&dynamodb.PutItemInput{
+		TableName:                aws.String(companiesTable),
+		Item:                     companyRecordMap,
+		ConditionExpression:      aws.String(companiesConditionalExpression),
+		ExpressionAttributeNames: companiesExpressionAttributeNames,
+	})
+	if err != nil {
+		if ae, ok := err.(awserr.RequestFailure); ok &&
+			ae.Code() == dynamodb.ErrCodeConditionalCheckFailedException {
+			return nil
+		}
+		return err
+	}
+
+	return nil
+}
+
+func putEPS(company Company, eps EPSData) error {
+	sess, err := session.NewSession(&awsConfig)
+	if err != nil {
+		return err
+	}
+
+	db := dynamodb.New(sess)
+
+	epsRecord := EPSRecord{
+		Symbol: company.Symbol,
+		Year:   eps.Year,
+		EPS:    eps.EPS,
+	}
+
+	epsRecordMap, err := dynamodbattribute.MarshalMap(epsRecord)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.PutItem(&dynamodb.PutItemInput{
+		TableName:                aws.String(financialsTable),
+		Item:                     epsRecordMap,
+		ConditionExpression:      aws.String(financialsConditionalExpression),
+		ExpressionAttributeNames: financialsExpressionAttributeNames,
+	})
+	if err != nil {
+		if ae, ok := err.(awserr.RequestFailure); ok &&
+			ae.Code() == dynamodb.ErrCodeConditionalCheckFailedException {
+			return nil
+		}
+		return err
+	}
+
+	return nil
 }

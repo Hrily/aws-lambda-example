@@ -9,13 +9,24 @@ STREAM_NAME=webpages-upload-stream
 export # variables
 
 create-aws-profile:
-ifeq (,$(wildcard ~/.aws))
-	echo "test\ntest\nus-east-1\njson\n" | aws configure --profile default
+ifeq (,$(wildcard ~/.aws/config))
+	aws configure set aws_access_key_id     tests     --profile default
+	aws configure set aws_secret_access_key tests     --profile default
+	aws configure set default.region        us-west-2 --profile default
+	aws configure set default.output        json      --profile default
 endif
 
 start-localstack: create-aws-profile
 	mkdir -p ${LOCALSTACK_TMPDIR}
 	TMPDIR=${LOCALSTACK_TMPDIR} docker-compose up -d
+
+# TODO: use health check instead of random sleep
+# while [[ $$(curl http://localhost:4566/health 2&>1 > /dev/null || echo failed) == "failed" ]]; do \
+# 	sleep 1; \
+# done; \
+# true;
+wait-for-localstack:
+	sleep 5
 
 create-bucket:
 	${AWS} s3api create-bucket --bucket ${BUCKET_NAME}
@@ -32,6 +43,10 @@ create-eventbridge:
 create-kinesis-stream:
 	make -C kinesis/stream all
 
+create-dynamodb-tables:
+	make -C dynamodb/companies  all
+	make -C dynamodb/financials all
+
 stop:
 	$(eval CONTAINER_ID := $(shell docker ps | grep localstack | cut -d " " -f 1 ))
 	[[ ! -z "$(CONTAINER_ID)" ]] && docker stop $(CONTAINER_ID) || true
@@ -39,8 +54,10 @@ stop:
 
 run: \
 	start-localstack \
+	wait-for-localstack \
 	create-bucket \
 	create-scraper-lambda \
 	create-eventbridge \
 	create-kinesis-stream \
-	create-eps-lambda
+	create-eps-lambda \
+	create-dynamodb-tables

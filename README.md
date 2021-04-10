@@ -32,6 +32,13 @@ aws --endpoint-url=http://localhost:4566 kinesis get-shard-iterator --shard-id s
 aws --endpoint-url=http://localhost:4566 kinesis get-records --shard-iterator "<shard-iterator-from-above-command-output>"
 ```
 
+Check DynamoDB records:
+
+```bash
+aws --endpoint-url=http://localhost:4566 dynamodb scan --table-name companies
+aws --endpoint-url=http://localhost:4566 dynamodb scan --table-name financials
+```
+
 
 ## Stop Local(stack)
 
