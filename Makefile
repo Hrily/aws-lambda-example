@@ -48,7 +48,7 @@ create-dynamodb-tables:
 	make -C dynamodb/financials all
 
 stop:
-	$(eval CONTAINER_ID := $(shell docker ps | grep "localstack\|dynamodb-graphql" | cut -d " " -f 1 ))
+	$(eval CONTAINER_ID := $(shell docker ps | grep "localstack\|dynamodb-graphql\|financials-ui" | cut -d " " -f 1 ))
 	[[ ! -z "$(CONTAINER_ID)" ]] && docker stop $(CONTAINER_ID) || true
 	[[ ! -z "$(CONTAINER_ID)" ]] && docker rm   $(CONTAINER_ID) || true
 

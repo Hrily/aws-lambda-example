@@ -24,5 +24,16 @@ services:
       context: graphql-server
     ports:
       - "4000:4000"
+    expose:
+      - 4000
     links:
       - localstack
+  financials-ui:
+    image: financials-ui
+    network_mode: bridge
+    build:
+      context: financials-ui
+    ports:
+      - "3000:80"
+    links:
+      - dynamodb-graphql
