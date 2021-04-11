@@ -12,13 +12,13 @@ create-aws-profile:
 ifeq (,$(wildcard ~/.aws/config))
 	aws configure set aws_access_key_id     tests     --profile default
 	aws configure set aws_secret_access_key tests     --profile default
-	aws configure set default.region        us-west-2 --profile default
+	aws configure set default.region        us-east-1 --profile default
 	aws configure set default.output        json      --profile default
 endif
 
 start-localstack: create-aws-profile
 	mkdir -p ${LOCALSTACK_TMPDIR}
-	TMPDIR=${LOCALSTACK_TMPDIR} docker-compose up -d
+	TMPDIR=${LOCALSTACK_TMPDIR} docker-compose up -d --build --force-recreate
 
 # TODO: use health check instead of random sleep
 # while [[ $$(curl http://localhost:4566/health 2&>1 > /dev/null || echo failed) == "failed" ]]; do \
@@ -48,7 +48,7 @@ create-dynamodb-tables:
 	make -C dynamodb/financials all
 
 stop:
-	$(eval CONTAINER_ID := $(shell docker ps | grep localstack | cut -d " " -f 1 ))
+	$(eval CONTAINER_ID := $(shell docker ps | grep "localstack\|dynamodb-graphql" | cut -d " " -f 1 ))
 	[[ ! -z "$(CONTAINER_ID)" ]] && docker stop $(CONTAINER_ID) || true
 	[[ ! -z "$(CONTAINER_ID)" ]] && docker rm   $(CONTAINER_ID) || true
 

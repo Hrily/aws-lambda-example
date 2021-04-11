@@ -39,6 +39,25 @@ aws --endpoint-url=http://localhost:4566 dynamodb scan --table-name companies
 aws --endpoint-url=http://localhost:4566 dynamodb scan --table-name financials
 ```
 
+Query DynamoDB records using graphql:
+
+```bash
+# Query companies
+curl 'http://localhost:4000/' \
+	-H 'Content-Type: application/json' \
+	-H 'Accept: application/json' \
+	--data-binary '{"query":"query {\n  companies {\n    symbol\n    name\n  }\n}"}'
+```
+
+```bash
+# Query financials for a symbol
+curl 'http://localhost:4000/' \
+	-H 'Content-Type: application/json' \
+	-H 'Accept: application/json' \
+	-H 'Origin: http://localhost:4000' \
+	--data-binary '{"query":"query {\n  companyFinancials(symbol: \"RI\") {\n    company{\n      name\n      symbol\n    }\n    financials {\n      year\n      eps\n    }\n  }\n}"}'
+```
+
 
 ## Stop Local(stack)
 
